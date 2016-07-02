@@ -13,7 +13,7 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         Int32 length=123;
-        Int64 length_in_bytes=456;
+        UInt64 length_in_bytes=456;
 
         string file_name = "temp.bin";
 
@@ -28,7 +28,7 @@ namespace WpfApplication1
         /// FUNCTION:     read_size
         /// DESCRIPTION:  read value from TextBox and convert it to int64
         /// PARAMS:       none
-        /// RETURN VALUE: bool (TRUE - can parse from text to int, FALSE cant parse fron Text to int)
+        /// RETURN VALUE: bool (TRUE - can parse from text to int, FALSE can't parse fron Text to int)
         /// NOTES:
         /// </summary>
         bool read_size()
@@ -57,7 +57,9 @@ namespace WpfApplication1
 
         /// <summary>
         /// FUNCTION:     button_Click
-        /// DESCRIPTION:  button manager
+        /// DESCRIPTION:  button manager - When button pressed read the value for file size and  check box for units,
+        ///               convert both to file size in bytes, if file exits erase it. create a new file with the file size
+        ///               use 1,2 or 3 byres for index (depend on file size) use bytes from 0x00 to 0xff as repeat pettern. 
         /// PARAMS:       object sender, RoutedEventArgs e
         /// RETURN VALUE: none
         /// NOTES:
@@ -71,7 +73,7 @@ namespace WpfApplication1
                 parse_text_box = read_size();
                 if (parse_text_box == true)
                 {
-                    length_in_bytes = length;
+                    length_in_bytes = (UInt64)length;
                 }
             }
             else if (KiloBytesButton.IsChecked == true)
@@ -79,7 +81,7 @@ namespace WpfApplication1
                 parse_text_box = read_size();
                 if (parse_text_box == true)
                 {
-                    length_in_bytes = length*1024;
+                    length_in_bytes = (UInt64)length *1024;
                 }
             }
             else if (MegaBytesButton.IsChecked == true)
@@ -87,7 +89,7 @@ namespace WpfApplication1
                 parse_text_box = read_size();
                 if (parse_text_box == true)
                 {
-                    length_in_bytes = length * 1024 * 1024;
+                    length_in_bytes = (UInt64)length * 1024 * 1024;
                 }
             }
             else 
@@ -143,14 +145,17 @@ namespace WpfApplication1
                 try
                 {
 
+                    UInt64 i;
                     /// http://stackoverflow.com/questions/24357982/c-write-values-into-binary-bin-file-format
                     var sw = File.OpenWrite(file_name);
                     var bw = new BinaryWriter(sw);
                     byte vr = 0x00;
+                    
+
 
                     if (length_in_bytes < 128 * 1024) //128[KBytes] two bytes pattern
                     {
-                        for (Int64 i = 0; i < length_in_bytes / 2; i++)
+                        for (i = 0; i < length_in_bytes / 2; i++)
                         {
                             vr = (byte)(i >> 8);
                             bw.Write((byte)vr);
@@ -160,7 +165,7 @@ namespace WpfApplication1
                     }/* End if (length_in_bytes < 128 * 1024) */
                     else if (length_in_bytes < 48 * 1024 * 1024) //48 [MBytes] three bytes patten
                     {
-                        for (Int64 i = 0; i < length_in_bytes / 3; i++)
+                        for (i = 0; i < length_in_bytes / 3; i++)
                         {
                             vr = (byte)(i >> 16);
                             bw.Write((byte)vr);
@@ -172,7 +177,7 @@ namespace WpfApplication1
                     }/* End else if (length_in_bytes < 48 * 1024 * 1024) */
                     else //works perferct up to 16 [GBytes] four bytes pattern
                     {
-                        for (Int64 i = 0; i < length_in_bytes / 4; i++)
+                        for (i = 0; i < length_in_bytes / 4; i++)
                         {
                             vr = (byte)(i >> 24);
                             bw.Write((byte)vr);
@@ -185,14 +190,17 @@ namespace WpfApplication1
                         }/* End for (Int64 i = 0; i < length_in_bytes/4; i++) */
                     }/* End else */
 
+                    // Write remains in file buffer into thr file.
                     bw.Flush();
+                    
+                    // Close the file
                     bw.Close();
                     MessageBox.Show("File ( " + file_name + " ) with " + length_in_bytes.ToString() + " [Bytes] created.");
                 }
                 catch (System.UnauthorizedAccessException error_e)
                 {
                     //System.Console.WriteLine(e.Message);
-                    MessageBox.Show("File ( " + file_name + " ) UnauthorizedAccessExceptio " + error_e.Message);
+                    MessageBox.Show("File ( " + file_name + " ) UnauthorizedAccessException " + error_e.Message);
                 }
                 finally
                 {
@@ -208,7 +216,7 @@ namespace WpfApplication1
             MessageBox.Show("Two bytes pattern for files less then 128[KBytes]\nThree bytes pattern for files less then 48[MByes]\nelse Four bytes pattern (repeat after 16[GBytes]).");
         }
 
-
+        /* Add event by mistake */
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
         {
 
